@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs -->
+  <meta charset="utf-8">
+  <title>OSAG Hackathon</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT -->
+  <link type="text/css" rel="stylesheet" href="https://fast.fonts.net/cssapi/95fc5935-b44a-4448-a001-9591578dee69.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/osag.css">
+
+  <!-- Favicon -->
+  <!-- <link rel="icon" type="image/png" href="images/favicon.png"> -->
+
+  <!-- Javascript -->
+  <script type="text/javascript" src="js/jquery-2.2.4.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/login.js"></script>
+  <script type="text/javascript" src="js/moment.min.js"></script>
+  <script type="text/javascript" src="js/countdown.min.js"></script>
+  <script type="text/javascript" src="js/moment-countdown.min.js"></script>
+  <script>
+      // Define Start and End Time of the Hackathon
+      var event_start = new moment("2017-11-09 09:00")
+      var event_end   = new moment("2017-11-10 16:00")
+      var timer;
+
+      document.addEventListener('DOMContentLoaded', showRemaining );
+      function showRemaining() {
+          var distance = moment.duration(event_start.diff(moment()));
+          if (distance.asSeconds() < 0) {
+
+              duration = moment.duration(event_end.diff(moment()));
+              document.getElementById('date').innerHTML      = event_end.format('DD. MMMM YYYY, HH:mm') 
+              document.getElementById('countdown').innerHTML = 'ending in ' + event_end.countdown().toString()
+
+              return;
+          }
+
+          document.getElementById('date').innerHTML      = event_start.format('DD. MMMM YYYY, HH:mm')
+          document.getElementById('countdown').innerHTML = 'starting in ' + event_start.countdown().toString() 
+      }
+
+      timer = setInterval(showRemaining, 1000);
+  </script>
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-inverse" id="menu">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">
+                    <img alt="Brand" src="./img/OS_LOGO_WHITE_750px.png" style="height:1.1em;width:1.1em;">
+                </a>
+                <a class="navbar-brand" href="index.html">Hackathon</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Information<span class="sr-only">(current)</span></a></li>
+                <li><a href="projects.html">Projects</a></li>
+                <li><a href="voting.html">Voting</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right" id="login-button">
+                <li><a href='#'>Not logged in</a></li>
+                <li><a href="/restricted">Login</a></li>
+              </ul>
+            </div><!-- /.navbar-collapse -->
+        </div>
+    </nav>
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row" style="margin-top: 20vh;">
+            <div class="col-xs-1">
+            </div>
+            <div class="col-xs-3">
+                <img src="./img/OS_LOGO_WHITE_750px.png" style="width:90%;height:90%;"/>
+            </div>
+            <div class="col-xs-7">
+                <div calss="container">
+                    <div class="row big_text">
+                        Hackathon 2017
+                    </div>
+                    <div class="row countdown_text" id="date">
+                        <!-- here comes the date -->
+                    </div>
+                    <div class="row countdown_text" id="countdown">
+                        <!-- here comes the countdown -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-1">
+            </div>
+        </div>
+    </div>
+
+<!-- End Document -->
+</body>
+</html>

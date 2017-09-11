@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs -->
+  <meta charset="utf-8">
+  <title>OSAG Hackathon</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT -->
+  <link type="text/css" rel="stylesheet" href="https://fast.fonts.net/cssapi/95fc5935-b44a-4448-a001-9591578dee69.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/osag.css">
+
+  <!-- Favicon -->
+  <!-- <link rel="icon" type="image/png" href="images/favicon.png"> -->
+
+  <!-- Javascript -->
+  <script type="text/javascript" src="js/jquery-2.2.4.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/marked.min.js"></script>
+  <script type="text/javascript" src="js/xss-filters.min.js"></script>
+  <script type="text/javascript" src="js/login.js"></script>
+      
+  <script>
+    $(function () {
+        getProjects();
+  	});
+    
+    function getProjects(){
+        $.ajax({
+            type:  "GET",
+            url:   "api/v1/projects",
+            cache: false,
+            success: function(projects){
+                try {
+                    console.log(projects);
+                    if(! projects){
+                        location.href = "/restricted";
+                    }
+                    updateProjectView(projects);
+                    displayToolbar();
+                }
+                catch(err){
+                    console.log("Error while getting projects: "+err);
+                    location.href = "/restricted";
+                }
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' + 
+                        'data-dismiss="alert" aria-hidden="true">' + 
+                        '&times;' + 
+                        '</button>' + 
+                        'Cannot connect to API server to get projects. Please check that API is up and running. ' + 
+                        '<br>api/v1/projects is not reachable.' +
+                    '</div>'
+                );
+                hideToolbar();
+            }
+        });
+    }
+    
+    function sendLike(id){
+        $.ajax({
+            type:  "POST",
+            url:   "api/v1/projects/"+id+"/like",
+            cache: false,
+            success: function(){
+                getProjects();
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' + 
+                        'data-dismiss="alert" aria-hidden="true">' + 
+                        '&times;' + 
+                        '</button>' + 
+                        'Cannot like project. An error occurred' +
+                    '</div>'
+                );
+                hideToolbar();
+            }
+        });
+    }
+    
+    function sendUnlike(id){
+        $.ajax({
+            type:  "POST",
+            url:   "api/v1/projects/"+id+"/dislike",
+            cache: false,
+            success: function(){
+                getProjects();
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' + 
+                        'data-dismiss="alert" aria-hidden="true">' + 
+                        '&times;' + 
+                        '</button>' + 
+                        'Cannot like project. An error occurred' +
+                    '</div>'
+                );
+                hideToolbar();
+            }
+        });
+    }
+    
+    function registerUser(id){
+        $.ajax({
+            type:  "POST",
+            url:   "api/v1/projects/"+id+"/join",
+            cache: false,
+            success: function(){
+                getProjects();
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' + 
+                        'data-dismiss="alert" aria-hidden="true">' + 
+                        '&times;' + 
+                        '</button>' + 
+                        'Cannot join project. An error occurred' +
+                    '</div>'
+                );
+                hideToolbar();
+            }
+        });
+    }
+    
+    function unregisterUser(id){
+        $.ajax({
+            type:  "POST",
+            url:   "api/v1/projects/"+id+"/leave",
+            cache: false,
+            success: function(){
+                getProjects();
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' + 
+                        'data-dismiss="alert" aria-hidden="true">' + 
+                        '&times;' + 
+                        '</button>' + 
+                        'Cannot join project. An error occurred' +
+                    '</div>'
+                );
+                hideToolbar();
+            }
+        });
+    }
+    
+    function displayToolbar(){
+        var uri = window.location.pathname;
+        if(uri.match(/restricted/)){
+            $("#toolbar").show();
+            $("#suggest_project_robots").show();
+            $("#suggest_project_big_data").show();
+        }else{
+            $("#toolbar").hide();
+            $("#suggest_project_robots").hide();
+            $("#suggest_project_big_data").hide();
+        }
+    }
+    
+    function hideToolbar(){
+        $("#toolbar").hide();
+        $("#suggest_project_robots").hide();
+        $("#suggest_project_big_data").hide();
+    }
+    
+    function projectSortByLike(a, b){
+        if(typeof a.likeUsers === 'undefined' && typeof b.likeUsers !== 'undefined'){
+            return 1;
+        }else if(typeof a.likeUsers !== 'undefined' && typeof b.likeUsers === 'undefined'){
+            return -1;
+        }else if(typeof a.likeUsers === 'undefined' && typeof b.likeUsers === 'undefined'){
+            // return latest first
+            return b.createdAt - a.createdAt
+        }else if(! a.likeUsers && b.likeUsers){
+            return 1;
+        }else if(a.likeUsers && !b.likeUsers){
+            return -1;
+        }else if (! a.likeUsers && ! b.likeUsers){
+            return b.createdAt - a.createdAt;
+        }else if(a.likeUsers.length === b.likeUsers.length){
+            return b.createdAt - a.createdAt
+        }else if(a.likeUsers.length > b.likeUsers.length){
+            return -1;
+        }else if(a.likeUsers.length < b.likeUsers.length){
+            return 1;
+        }else {
+            return 0;
+        }
+    }
+    
+    function updateProjectView(projects){
+        // get my current user
+        var myUser = localStorage.username;
+        if(myUser){
+            console.log("Extracted user to be '" + myUser + "'");
+        }else{
+            console.log("No user given, no edit options");
+        }
+        
+        if(typeof projects === 'undefined'){
+            projects = new Array();
+        }
+        
+        // check if I'm already member in one of the projects
+        console.log("Check if already member");
+        var already_member = false;
+        for (i = 0; i<projects.length; i++){
+            console.log("Check project " + i);
+            var project = projects[i];
+            if(typeof project.members !== 'undefined' && project.members){
+                for(j = 0; j<project.members.length; j++){
+                    if(project.members[j].username === myUser){
+                        already_member = true;
+                    }
+                }
+            }
+        }
+        
+        // apply sorting
+        projects.sort(projectSortByLike);
+        
+        var project_html = "";
+        for (i = 0; i<projects.length; i++){
+            var options = 0;
+            var project = projects[i];
+            console.log(project);
+            console.log(project.members);
+            marked.setOptions({
+                renderer: new marked.Renderer(),
+                gfm: true,
+                tables: true,
+                breaks: false,
+                pedantic: false,
+                sanitize: true,
+                smartLists: true,
+                smartypants: false
+            });
+            
+            // get members of this project
+            var member_string = "";
+            var member_count  = 0;
+            var is_join_possible = true;
+            var i_am_member      = false;
+            console.log("Get members of a project and check whether joining is possible");
+            if(typeof project.members !== 'undefined' && project.members){
+                for (j = 0; j<project.members.length; j++){
+                    console.log("Member " + j);
+                    console.log(project.members[j]);
+                    member_string += project.members[j].name;
+                    member_count++;
+                    if(j < project.members.length - 1){
+                        member_string += ', ';
+                    }
+                    if(! myUser){
+                        // not logged in
+                        console.log("Joining project " + i + " is not possible (not logged in)");
+                    }else if(project.members[j].username === myUser){
+                        // already member of this project
+                        console.log("Joining project " + i + " is not possible (alreadt part of it)");
+                        is_join_possible = false;
+                        i_am_member      = true;
+                    }
+                    
+                }
+            }else{
+                member_string = "none";
+                if(! myUser){
+                    console.log("Joining project " + i + " is not possible");
+                    is_join_possible = false;
+                }
+            }
+            console.log('Members are: ' + member_string);
+            
+            // check whether I am allowed to like (not part of likeUsers)
+            var is_like_possible = true;
+            var i_liked_already  = false;
+            var liked_by_string  = "";
+            console.log('LikeUsers are: ' + project.likeUsers);
+            if(! myUser){
+                // not logged in
+                is_like_possible = false;
+            }else if(typeof project.likeUsers !== 'undefined' && project.likeUsers !== null){
+                for (j = 0; j < project.likeUsers.length; j++){
+                    if(project.likeUsers[j].username === myUser){
+                        is_like_possible = false;
+                        i_liked_already  = true;
+                    }
+                    if(j > 0){
+                        liked_by_string += ', ';
+                    }
+                    liked_by_string += project.likeUsers[j].name;
+                }
+                if(liked_by_string == ""){
+                    liked_by_string = "none";
+                }
+            } else {
+                liked_by_string = "none";
+            }
+            
+            project_html += '<div class="panel panel-default">';
+            project_html += '   <div class="panel-heading">';
+            project_html += '       <div class="panel-title">';
+            project_html += '           <div class="row">';
+            project_html += '               <div class="col-xs-10">';
+            project_html +=                     project.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            project_html += '               </div>';
+            project_html += '               <div class="col-xs-2 text-right">';
+            if(myUser && (is_like_possible || is_join_possible || i_am_member)){
+                project_html += '               <div class="btn-group">';
+                project_html += '                   <button class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" area-haspopup="true" aria-expanded="false">';
+                project_html += '                       <span class="glyphicon glyphicon-menu-hamburger"></span>';
+                project_html += '                   </button>';
+                project_html += '                   <ul class="dropdown-menu dropdown-menu-right">';
+                // like unlike button
+                if(is_like_possible){
+                    project_html += '                   <li><a href="#" onClick="sendLike(';
+                    project_html +=                         project.id;
+                    project_html +=                         ')">Like</a></li>';
+                    options++;
+                }else if(i_liked_already){
+                    project_html += '                   <li><a href="#" onClick="sendUnlike(';
+                    project_html +=                         project.id;
+                    project_html +=                         ')">Unlike</a></li>';
+                    options++;
+                }
+                // join / leave button
+                if(is_join_possible && ! already_member){
+                    project_html += '                   <li><a href="#" onClick="registerUser(';
+                    project_html +=                         project.id;
+                    project_html +=                         ')">I\'m in</a></li>';
+                    options++;
+                }else if(i_am_member){
+                    project_html += '                   <li><a href="#" onClick="unregisterUser(';
+                    project_html +=                         project.id;
+                    project_html +=                         ')">I\'m out</a></li>';
+                    options++;
+                }
+                if(myUser === projects[i].creator.username){
+                    console.log("Options is: " + options);
+                    if(options !== 0){
+                        project_html += '               <li role="separator" class="divider"></li>';
+                    }
+                    project_html += '                   <li><a href="project.html?id=';
+                    project_html +=                         project.id;
+                    project_html +=                         '">Edit</a></li>';
+                }
+                project_html += '                   </ul>';
+                project_html += '               </div>';
+            }
+            project_html += '               </div>';
+            project_html += '           </div>';
+            project_html += '       </div>';
+            project_html += '   </div>';
+            project_html += '   <div class="panel-body">';
+            project_html += '       <div class="row">';
+            project_html += '           <div class="col-xs-10 col-sm-11 col-md-11">';
+            project_html += '               <div class="row">';
+            project_html += '                   <div class="col-xs-12"><span class="project-description">';
+            project_html +=                         marked(project.description);
+            project_html += '                   </span></div>';
+            project_html += '               </div>';
+            project_html += '               <div class="row hidden-xs" style="margin-top:1vh;">';
+            project_html += '                   <div class="col-xs-1">';
+            project_html += '                       <small>';
+            project_html += '                           Creator';
+            project_html += '                       </small>';
+            project_html += '                   </div>';
+            project_html += '                   <div class="col-xs-11">';
+            project_html += '                       <small>';
+            project_html +=                             project.creator.name;
+            project_html += '                       </small>';
+            project_html += '                   </div>';
+            project_html += '               </div>';
+            project_html += '               <div class="row hidden-xs" style="margin-top:1vh;">';
+            project_html += '                   <div class="col-xs-1">';
+            project_html += '                       <small>';
+            project_html += '                           Likes';
+            project_html += '                       </small>';
+            project_html += '                   </div>';
+            project_html += '                   <div class="col-xs-11">';
+            project_html += '                       <small>';
+            project_html +=                             liked_by_string;
+            project_html += '                       </small>';
+            project_html += '                   </div>';
+            project_html += '               </div>';
+            project_html += '               <div class="row hidden-xs" style="margin-top:1vh;">';
+            project_html += '                   <div class="col-xs-1">';
+            project_html += '                       <small>';
+            project_html += '                           Members';
+            project_html += '                       </small>';
+            project_html += '                   </div>';
+            project_html += '                   <div class="col-xs-11">';
+            project_html += '                       <small>';
+            project_html +=                             member_string;
+            project_html += '                       </small>';
+            project_html += '                   </div>';
+            project_html += '               </div>';
+            project_html += '           </div>';
+            project_html += '           <div class="col-xs-2 col-sm-1 col-md-1 indicator-text">';
+            project_html += '               <div class="row">';
+            if(i_liked_already){
+                project_html += '               <div class="row osag-blue">';
+            }else{
+                project_html += '               <div class="row osag-black">';
+            }
+            project_html += '                       <div class="col-xs-6 text-right">';
+            project_html += '                           <span class="glyphicon glyphicon-thumbs-up"></span>';
+            project_html += '                       </div>';
+            project_html += '                       <div class="col-xs-1 text-left">';
+            project_html +=                             project.likes;
+            project_html += '                       </div>';
+            project_html += '                   </div>';
+            project_html += '               </div>';
+            project_html += '               <div class="row">';
+            if(i_am_member){
+                project_html += '               <div class="row osag-blue">';
+            }else{
+                project_html += '               <div class="row osag-black">';
+            }
+            project_html += '                       <div class="col-xs-6 text-right">';
+            project_html += '                           <span class="glyphicon glyphicon-user"></span>';
+            project_html += '                       </div>';
+            project_html += '                       <div class="col-xs-1 text-left">';
+            project_html +=                             member_count;
+            project_html += '                       </div>';
+            project_html += '                   </div>';
+            project_html += '               </div>';
+            project_html += '           </div>';
+            project_html += '       </div>';
+            project_html += '   </div>';
+            project_html += '</div>';
+        }
+        
+        if(project_html == ""){
+            project_html += '<div class="panel panel-default">';
+            project_html += '    <div class="panel-body">';
+            project_html += '        <div class="alert alert-info">';
+            project_html += '            no projects found';
+            project_html += '        </div>';
+            project_html += '    </div>';
+            project_html += '</div>';
+        }
+        
+        $("#projects").html(project_html);
+    }
+    
+  </script>
+
+</head>
+<body>
+    <!-- Primary Page Layout -->
+    <nav class="navbar navbar-inverse" id="menu">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">
+                    <img alt="Brand" src="./img/OS_LOGO_WHITE_750px.png" style="height:1.1em;width:1.1em;">
+                </a>
+                <a class="navbar-brand" href="index.html">Hackathon</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav">
+                <li><a href="index.html">Information<span class="sr-only">(current)</span></a></li>
+                <li class="active"><a href="projects.html">Projects</a></li>
+                <li><a href="voting.html">Voting</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right" id="login-button">
+                <!-- here comes the login/logout button -->
+              </ul>
+            </div><!-- /.navbar-collapse -->
+        </div>
+    </nav>
+    
+    <div class="container-fluid" >
+        <div class="row">
+            <div class="col-xs-12">
+                <div id="topics">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-13">
+                            <div class="jumbotron osag-black">
+				<h2>Projects</h2>
+                                <p>Whether is a tool which helps in your daily life or the next big visionary product we can sell. Hackathon are here for inspiration and automation.</p>
+                                <a class="btn btn-default" href="project.html" role="button" id="suggest_project_robots">Suggest project</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="projects">
+            <!-- here go the projects -->
+        </div>
+    </div>
+
+<!-- End Document -->
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs -->
+  <meta charset="utf-8">
+  <title>OSAG Hackathon</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT -->
+  <link type="text/css" rel="stylesheet" href="https://fast.fonts.net/cssapi/95fc5935-b44a-4448-a001-9591578dee69.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/osag.css">
+
+  <!-- Favicon -->
+  <!-- <link rel="icon" type="image/png" href="images/favicon.png"> -->
+
+  <!-- Javascript -->
+  <script type="text/javascript" src="js/jquery-2.2.4.min.js"></script>
+  <script type="text/javascript" src="js/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/login.js"></script>
+
+  <script>
+
+    $().ready(function() {
+        var project_id = getUrlParameter("id");
+        console.log("Project ID is: " + project_id);
+
+        if(typeof project_id !== 'undefined'){
+            getProject(project_id);
+            showDeleteButton();
+        }else{
+            hideDeleteButton();
+        }
+        validateForm();
+    });
+
+    // Turn on form validation
+    function validateForm() {
+        $('#project-form').validate({
+            submitHandler: function(form){
+                addProject(form);
+            },
+            rules: {
+                title: {
+                    required:true,
+                    minlength:1,
+                    maxlength:200
+                },
+                description: {
+                    required:true,
+                    minlength: 10
+                }
+            },
+            messages: {
+                title: "Please enter a title (maxlength 200 chars)",
+                description: "Please enter a description"
+            }
+        });
+    }
+
+    function showDeleteButton() {
+        console.log("Show delete button");
+        $("#btn-delete").show();
+    }
+
+    function hideDeleteButton() {
+        console.log("Hide delete button");
+        $('#btn-delete').hide();
+    }
+
+    // Returns the URL parameter
+    function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1);
+        var sURLVariables = sPageURL.split('&');
+        for (var i = 0; i < sURLVariables.length; i++){
+            var sParameterName = sURLVariables[i].split('=');
+            if (sParameterName[0] == sParam){
+                return sParameterName[1];
+            }
+        }
+    }
+
+    // Get project information from the server
+    function getProject(id){
+        $.ajax({
+            type: "GET",
+            url: "api/v1/projects/"+id,
+            cache: false,
+            success: function(project){
+                if(! project){
+                    location.href = "login";
+                }
+                $("#title").val(project.name);
+                $("#description").val(project.description);
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' +
+                        'data-dismiss="alert" aria-hidden="true">' +
+                        '&times;' +
+                        '</button>' +
+                        'Cannot connect to API server to get project by id. Please check that API is up and running.' +
+                    '</div>'
+                );
+            }
+        });
+    }
+
+    // add/update a given project
+    function addProject(form){
+        var project_id      = getUrlParameter("id");
+        var data            = new Object();
+        data['name']        = $('#title').val();
+        data['description'] = $('#description').val();
+
+        // get method POST for new / PUT for edit
+        var method     = "PUT";
+        if(typeof project_id === 'undefined'){
+            project_id = '';
+            method     = 'POST';
+        }else{
+            project_id = '/'+project_id
+        }
+
+        $.ajax({
+            type:  method,
+            url:   "api/v1/projects"+project_id,
+            cache: false,
+            data:  JSON.stringify(data),
+            contentType: "application/json; charset=UTF-8",
+            success: function(data){
+                if(! data){
+                    location.href = "login";
+                }
+                // TODO check if success
+                location.href = "projects.html";
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' +
+                        'data-dismiss="alert" aria-hidden="true">' +
+                        '&times;' +
+                        '</button>' +
+                        'Cannot connect to API server to submit your project. Please check that API is up and running.' +
+                    '</div>'
+                );
+            }
+        });
+    }
+
+    // delete the project
+    function deleteProject() {
+        var project_id = getUrlParameter("id");
+        var data = new Object();
+        if(typeof project_id === 'undefined'){
+            return;
+        }
+        $.ajax({
+            type: "DELETE",
+            url: "api/v1/projects/"+project_id,
+            cache: false,
+            success: function(){
+                // TODO check if success
+                location.href = "projects.html";
+            },
+            error: function(request, status, error){
+                $("#menu").after(
+                    '<div class="alert alert-warning alert-dismissable">'+
+                        '<button type="button" class="close" ' +
+                        'data-dismiss="alert" aria-hidden="true">' +
+                        '&times;' +
+                        '</button>' +
+                        'Cannot connect to API server to delete your project. Please check that API is up and running.' +
+                    '</div>'
+                );
+            }
+        });
+    }
+
+  </script>
+
+</head>
+<body>
+    <!-- Primary Page Layout -->
+    <nav class="navbar navbar-inverse" id="menu">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">
+                    <img alt="Brand" src="./img/OS_LOGO_WHITE_750px.png" style="height:1.1em;width:1.1em;">
+                </a>
+                <a class="navbar-brand" href="index.html">Hackathon</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav">
+                <li><a href="index.html">Information<span class="sr-only">(current)</span></a></li>
+                <li class="active"><a href="projects.html">Projects</a></li>
+                <li><a href="voting.html">Voting</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right" id="login-button">
+                <!-- here comes the login/logout button -->
+              </ul>
+            </div><!-- /.navbar-collapse -->
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                <form id="project-form">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" class="form-control" name="title" id="title" placeholder="Title">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea name="description" rows="8" class="form-control" id="description" placeholder="Description"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            <button type="submit" class="btn btn-default btn-inverse">Submit</button>
+                            <a href="projects.html" class="btn btn-default btn-inverse">Cancel</a>
+                        </div>
+                        <div class="col-xs-4 text-right">
+                            <button class="btn btn-default btn-danger" onClick="deleteProject();" id="btn-delete">Delete</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!-- End Document -->
+</body>
+</html>

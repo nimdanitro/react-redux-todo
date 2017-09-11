@@ -1,0 +1,92 @@
+body {
+    color: #fff;
+    background-color: #111;
+    font-family: "Avenir Next W01 Light", "sans-serif";
+}
+.box {
+    color: #eee;
+    background-color: #222;
+    padding-left: 30px;
+}
+.big_text {
+    font-size: 6.5vw;
+}
+.countdown_text {
+    font-size: 1.8vw;
+}
+.btn-inverse {
+    background-color:#222;
+    color: #9d9d9d;
+    border-color: #eee;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+.btn-inverse:hover {
+    color: #fff;
+    background-color: #000;
+}
+.panel-body {
+    color: #000;
+    background-color:#c6c7c8;
+    background-color:#fff;
+}
+.panel-default>.panel-heading {
+    color: #3a3a3a;
+    background-color: #ececec;
+}
+.indicator-text {
+    font-size: 1.75vw;
+    text-align: right;
+}
+.text-right-row {
+    margin-right: 0px;
+}
+label {
+    font-weight: 400;
+}
+.osag-blue {
+    color: #65c5e4;
+}
+.osag-black {
+    color: #000000;
+}
+
+#projects {
+    margin-left: 10vw;
+    margin-right: 10vw;
+}
+
+#topics {
+    margin-left: 10vw;
+    margin-right: 10vw;
+}
+
+#toolbar {
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-bottom: 5vh;
+}
+
+.spaced_horizontal {
+    margin-left: 10vw;
+    margin-right: 10vw;
+}
+
+.project-description {
+    white-space: pre-wrap;
+}
+
+pre{
+    display: block;
+    font-family: monospace;
+    padding: 9.5px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.42857143;
+    color: #333;
+    word-break: break-all;
+    word-wrap: break-word;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
