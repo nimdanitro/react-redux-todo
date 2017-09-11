@@ -29,9 +29,9 @@ func main() {
 	r.HandleFunc("/api/v1/todos", todosHandler)
 	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(rice.MustFindBox("client/build").HTTPBox())))
 
-	log.Println("Listening at port 3000")
+	log.Println("Listening at port 3002")
 	loggedRouter := handlers.RecoveryHandler()(handlers.LoggingHandler(os.Stdout, r))
-	http.ListenAndServe(":3000", loggedRouter)
+	http.ListenAndServe(":3002", loggedRouter)
 
 }
 

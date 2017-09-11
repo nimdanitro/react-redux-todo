@@ -2,13 +2,13 @@ import 'babel-polyfill'
 import React                            from 'react'
 import { render }                       from 'react-dom'
 import { Provider }                     from 'react-redux'
-import { createStore, combineReducers, applyMiddleware } from 'redux'
+import { createStore, applyMiddleware } from 'redux'
 import { composeWithDevTools }          from 'redux-devtools-extension';
 import thunk                            from 'redux-thunk';
 
-import createHistory from 'history/createBrowserHistory'
-import { Route } from 'react-router'
-
+// react-router
+import createHistory                         from 'history/createBrowserHistory'
+import { Route }                             from 'react-router'
 import { ConnectedRouter, routerMiddleware } from 'react-router-redux'
 
 

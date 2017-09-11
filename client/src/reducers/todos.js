@@ -1,4 +1,5 @@
-import merge from "lodash/merge";
+import { merge, omit } from "lodash";
+
 import { combineReducers }      from 'redux';
 
 
@@ -8,7 +9,13 @@ import { todos as TODOS } from '../constants/types';
 function todosByID(state = {}, action) {
   const {payload} = action
   switch (action.type) {
+
     case TODOS.COMPLETE: return completeTodo(state, action);
+
+    case TODOS.DELETE:
+        const {id} = action;
+        return omit(state, id)
+
     default:
       if (payload && payload.entities && payload.entities.todos) {
         return merge({}, state, payload.entities.todos);
@@ -22,7 +29,8 @@ function allTodos(state = [], action) {
 
   switch (action.type) {
     case TODOS.DELETE:
-        return state;
+        const {id} = action;
+        return state.filter( curID => curID !== id);
 
     default:
       if (payload && payload.result) {
@@ -44,6 +52,7 @@ function completeTodo(state, action) {
        }
    };
 }
+
 
 export const todosEntitiesReducer = combineReducers({
     byId : todosByID,
